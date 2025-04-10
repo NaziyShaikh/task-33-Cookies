@@ -12,6 +12,18 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 
+// Root route
+app.get('/', (req, res) => {
+    res.status(200).json({
+        message: 'Welcome to Cookie Response API',
+        endpoints: {
+            '/set-cookie': 'Set a cookie in the client browser',
+            '/get-cookie': 'Get the cookie value',
+            '/response/:code': 'Get response with specified HTTP code (200, 201, 400, 404, 500)'
+        }
+    });
+});
+
 // Route to set a cookie in the client's browser
 app.get('/set-cookie', (req, res) => {
     res.cookie('myCookie', 'cookieValue', {
@@ -100,6 +112,29 @@ app.get('/response/:code', (req, res) => {
             }
         });
     }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        message: 'Internal Server Error',
+        error: {
+            code: 'INTERNAL_ERROR',
+            details: 'An unexpected error occurred'
+        }
+    });
+});
+
+// 404 handler for non-existent routes
+app.use((req, res) => {
+    res.status(404).json({
+        message: 'Not Found',
+        error: {
+            code: 'NOT_FOUND',
+            details: `Route ${req.method} ${req.url} does not exist`
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
