@@ -3,7 +3,7 @@ import axios from 'axios';
 import './App.css';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:3000';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 axios.defaults.withCredentials = true;
 
 const App = () => {
