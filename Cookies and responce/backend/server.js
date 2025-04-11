@@ -6,7 +6,9 @@ const app = express();
 // Enable CORS with specific configuration
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(cookieParser());
@@ -29,7 +31,8 @@ app.get('/set-cookie', (req, res) => {
     res.cookie('myCookie', 'cookieValue', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none'
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
+        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
     });
     res.status(200).json({ 
         message: 'Cookie set successfully',
