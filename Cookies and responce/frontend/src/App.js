@@ -14,16 +14,30 @@ const App = () => {
     const handleApiCall = async (endpoint) => {
         setLoading(true);
         try {
-            const res = await axios.get(endpoint);
+            const res = await axios.get(endpoint, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
             setResponse(res.data);
             setError(null);
         } catch (error) {
             console.error('API Error:', error);
-            const errorMessage = error.response?.data?.message || 
-                               error.response?.data?.error?.message || 
-                               error.response?.data?.error?.details || 
-                               error.message || 
-                               'An error occurred';
+            let errorMessage = 'Network error occurred';
+            
+            if (error.response) {
+                errorMessage = error.response.data?.message || 
+                             error.response.data?.error?.message || 
+                             error.response.data?.error?.details || 
+                             `Status: ${error.response.status}`;
+            } else if (error.request) {
+                errorMessage = 'No response received from server';
+            } else {
+                errorMessage = error.message;
+            }
+            
             setError(errorMessage);
             setResponse(null);
         } finally {

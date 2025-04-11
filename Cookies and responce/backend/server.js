@@ -8,8 +8,14 @@ app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
 }));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', true);
+    next();
+});
 
 app.use(cookieParser());
 app.use(express.json());
@@ -31,8 +37,9 @@ app.get('/set-cookie', (req, res) => {
     res.cookie('myCookie', 'cookieValue', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
+        path: '/'
     });
     res.status(200).json({ 
         message: 'Cookie set successfully',
