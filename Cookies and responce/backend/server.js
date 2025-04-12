@@ -4,16 +4,20 @@ const cors = require('cors');
 const app = express();
 
 // Enable CORS with specific configuration
-app.use(cors({
+const corsOptions = {
     origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar']
-}));
+};
 
+app.use(cors(corsOptions));
+
+// Add CORS preflight response
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Origin', corsOptions.origin);
     next();
 });
 
@@ -27,7 +31,7 @@ app.get('/', (req, res) => {
         endpoints: {
             '/set-cookie': 'Set a cookie in the client browser',
             '/get-cookie': 'Get the cookie value',
-            '/response/:code': 'Get response with specified HTTP code (200, 201, 400, 404, 500)'
+            '/response/:code': 'Get response with specified HTTP code'
         }
     });
 });
@@ -39,7 +43,8 @@ app.get('/set-cookie', (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined,
-        path: '/'
+        path: '/',
+        maxAge: 900000 // 15 minutes
     });
     res.status(200).json({ 
         message: 'Cookie set successfully',
@@ -50,6 +55,7 @@ app.get('/set-cookie', (req, res) => {
 // Route to retrieve the cookie from the client's request
 app.get('/get-cookie', (req, res) => {
     const cookieValue = req.cookies.myCookie;
+    console.log('Received cookie:', cookieValue); // added logging for debugging resoleve the isue here 
     if (cookieValue) {
         res.status(200).json({ 
             message: 'Cookie found',
@@ -102,49 +108,27 @@ app.get('/response/:code', (req, res) => {
         },
         500: {
             status: 500,
-            message: 'Internal Server Error: Something went wrong!',
+            message: 'Error: Internal Server Error',
             error: {
                 code: 'INTERNAL_ERROR',
-                details: 'Server encountered an unexpected condition'
+                details: 'An unexpected error occurred'
             }
         }
     };
 
     const response = responses[code];
     if (response) {
-        res.status(response.status).json(response);
+        res.status(code).json(response);
     } else {
         res.status(400).json({
-            message: 'Invalid status code',
+            status: 400,
+            message: 'Invalid response code',
             error: {
-                code: 'INVALID_STATUS',
-                details: `Status code ${code} is not supported`
+                code: 'INVALID_CODE',
+                details: `Code ${code} is not supported`
             }
         });
     }
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({
-        message: 'Internal Server Error',
-        error: {
-            code: 'INTERNAL_ERROR',
-            details: 'An unexpected error occurred'
-        }
-    });
-});
-
-// 404 handler for non-existent routes
-app.use((req, res) => {
-    res.status(404).json({
-        message: 'Not Found',
-        error: {
-            code: 'NOT_FOUND',
-            details: `Route ${req.method} ${req.url} does not exist`
-        }
-    });
 });
 
 const PORT = process.env.PORT || 3000;
