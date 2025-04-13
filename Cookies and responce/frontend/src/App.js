@@ -5,6 +5,7 @@ import './App.css';
 // Configure axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 axios.defaults.withCredentials = true;
+axios.defaults.timeout = 5000;
 
 const App = () => {
     const [response, setResponse] = useState(null);
@@ -14,6 +15,7 @@ const App = () => {
     const handleApiCall = async (endpoint) => {
         setLoading(true);
         try {
+            console.log('Making request to:', endpoint);
             const res = await axios.get(endpoint, {
                 withCredentials: true,
                 headers: {
@@ -21,6 +23,7 @@ const App = () => {
                     'Accept': 'application/json'
                 }
             });
+            console.log('Response received:', res.data);
             setResponse(res.data);
             setError(null);
         } catch (error) {
@@ -33,7 +36,8 @@ const App = () => {
                              error.response.data?.error?.details || 
                              `Status: ${error.response.status}`;
             } else if (error.request) {
-                errorMessage = 'No response received from server';
+                errorMessage = 'No response received from server. Request details:';
+                console.log('Request details:', error.request);
             } else {
                 errorMessage = error.message;
             }
