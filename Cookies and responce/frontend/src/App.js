@@ -11,6 +11,19 @@ const App = () => {
     const [response, setResponse] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [cookies, setCookies] = useState(null);
+
+    const fetchCookies = async () => {
+        try {
+            const res = await axios.get('/get-cookie', {
+                withCredentials: true
+            });
+            setCookies(res.data);
+        } catch (error) {
+            console.error('Error fetching cookies:', error);
+            setError('Error fetching cookies');
+        }
+    };
 
     const handleApiCall = async (endpoint) => {
         setLoading(true);
@@ -57,6 +70,9 @@ const App = () => {
                 <button onClick={() => handleApiCall('/set-cookie')} disabled={loading}>
                     {loading ? 'Loading...' : 'Set Cookie'}
                 </button>
+                <button onClick={() => fetchCookies()} disabled={loading}>
+                    {loading ? 'Loading...' : 'Show Cookies'}
+                </button>
                 <button onClick={() => handleApiCall('/get-cookie')} disabled={loading}>
                     {loading ? 'Loading...' : 'Get Cookie'}
                 </button>
@@ -83,6 +99,15 @@ const App = () => {
                 </div>
             )}
 
+            {cookies && (
+                <div className="cookie-container">
+                    <h2>Cookies:</h2>
+                    <pre className="cookie-json">
+                        {JSON.stringify(cookies, null, 2)}
+                    </pre>
+                </div>
+            )}
+
             {response && (
                 <div className="response-container">
                     <h2>Response:</h2>
@@ -92,7 +117,7 @@ const App = () => {
                 </div>
             )}
 
-            {!response && !error && (
+            {!response && !error && !cookies && (
                 <div className="info-message">
                     <p>Click any button above to test the API endpoints</p>
                 </div>

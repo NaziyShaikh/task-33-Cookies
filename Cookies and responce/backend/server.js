@@ -3,9 +3,16 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
 
-//// Enable CORS with specific configuration
+
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: function(origin, callback) {
+        
+        if (!origin || origin === 'http://localhost:3001') {
+            return callback(null, true);
+        }
+       
+        return callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -14,14 +21,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Add CORS preflight response
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Origin', req.headers.origin);
     next();
 });
 
-// Add logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
